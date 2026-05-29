@@ -818,7 +818,7 @@ function renderCli(){
     const ac = buildAcercamiento(c);
     const pri = PRI[ac.prioridad]||'';
     const TIPO_CFG = {
-      'inmediata':  {icon:'🔴', lbl:'AHORA',        col:'var(--ng)'},
+      'inmediata':  {icon:'🔴', lbl:'AHORA',        col:'var(--ca)'},
       'estrategica':{icon:'🔵', lbl:'ESTE MES',     col:'var(--nv)'},
       'precio':     {icon:'💰', lbl:'VS PRECIO',    col:'var(--ca)'},
       'predictivo': {icon:'📅', lbl:'PLANEAR',      col:'var(--go)'},
@@ -839,7 +839,7 @@ function renderCli(){
     <tr>
       <td><button class="expand-btn" onclick="toggleAc(${i})" id="exp-${i}">▶</button></td>
       <td><strong>${c['Associated Company']||'—'}</strong></td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:${c.tasa>=50?'var(--go)':c.tasa>=25?'var(--ca)':'var(--ng)'}">${c.tasa}%</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:${c.tasa>=50?'var(--go)':c.tasa>=25?'var(--ca)':'var(--ca)'}">${c.tasa}%</td>
       <td style="color:var(--go);font-weight:600">${c.ganadas}</td>
       <td style="color:var(--ng)">${c.perdidas}</td>
       <td style="color:var(--nv);font-weight:600">${c.activas||0}</td>
@@ -913,7 +913,7 @@ function renderRng(){
 
   document.getElementById('rng-grid').innerHTML = RANGO_LBLS.map(l=>{
     const d = data[l]||{g:0,p:0,tasa:0};
-    const col = d.tasa>=50?'var(--go)':d.tasa>=25?'var(--ca)':'var(--ng)';
+    const col = d.tasa>=50?'var(--go)':d.tasa>0?'var(--ca)':'var(--mu)';
     return `<div class="rc">
       <div class="rc-lbl">${l}</div>
       <div class="rc-tasa" style="color:${col}">${d.tasa}%</div>
@@ -1030,7 +1030,7 @@ function evalHint(){
   if(cli && found){
     const map={GO:'✅ GO — buen historial','ESTRATÉGICO':'🎯 Estratégico — cotizar siempre',CAUTELA:'⚠️ Cautela — evaluar','REVISAR':'🔍 Revisar — analizar esfuerzo'};
     hint.textContent = map[found.rec]||'';
-    hint.style.color = found.rec==='GO'?'var(--go)':found.rec==='ESTRATÉGICO'?'var(--nv)':found.rec==='REVISAR'?'var(--ng)':'var(--ca)';
+    hint.style.color = found.rec==='GO'?'var(--go)':found.rec==='ESTRATÉGICO'?'var(--nv)':found.rec==='REVISAR'?'var(--ca)':'var(--ca)';
   } else {
     hint.textContent = cli ? 'Cliente sin historial propio' : 'Busca un cliente para ver su historial';
     hint.style.color = 'var(--mu)';
@@ -1076,7 +1076,7 @@ function evaluarOferta(){
     score += Math.min(Math.max(delta,-20),20);
     if(cData.rec==='GO'){pills.push({cls:'good',txt:'✅ '+cli.split(' ')[0]+' GO ('+cData.tasa+'%)'});}
     else if(cData.rec==='ESTRATÉGICO'){pills.push({cls:'info',txt:'🎯 Estratégico ('+cData.tasa+'%)'});}
-    else if(cData.rec==='REVISAR'){pills.push({cls:'bad',txt:'🔍 Revisar ('+cData.tasa+'%)'});score-=8;}
+    else if(cData.rec==='REVISAR'){pills.push({cls:'warn',txt:'🔍 Revisar ('+cData.tasa+'%) — evaluar esfuerzo'});score-=8;}
     else{pills.push({cls:'warn',txt:'⚠️ Cautela ('+cData.tasa+'%)'});}
     if(cData.activas>4){pills.push({cls:'warn',txt:'⚡ '+cData.activas+' ofertas paralelas activas'});}
     insights.push('Con <strong>'+cli+'</strong> tienes '+cData.ganadas+'G / '+cData.perdidas+'P ('+cData.tasa+'% tasa personal).');
@@ -1117,8 +1117,8 @@ function evaluarOferta(){
   else if(k.tasa < GLOBAL_BENCH.tasa_global - 5){ score -= 3; }
 
   score = Math.round(Math.min(Math.max(score,5),95));
-  const verdict = score>=65?'ALTA VIABILIDAD':score>=45?'VIABLE CON GESTIÓN':score>=30?'RIESGO MODERADO':'BAJA VIABILIDAD';
-  const scoreCol = score>=65?'#1a5c35':score>=45?'#b8860b':score>=30?'#7a4a00':'#8b1a1a';
+  const verdict = score>=65?'ALTA VIABILIDAD':score>=45?'VIABLE CON GESTIÓN':score>=30?'EVALUAR CON CRITERIO':'REQUIERE ANÁLISIS';
+  const scoreCol = score>=65?'#1a5c35':score>=45?'#b8860b':'#7a4a00'; // amber for low — never red
 
   // Render
   document.getElementById('eval-result').style.display='block';
@@ -1149,7 +1149,7 @@ function evaluarOferta(){
   const rngKey = getRangoKey(valor);
   document.getElementById('ev-rng-bars').innerHTML = RANGO_LBLS.map(lbl=>{
     const rd=vd.rng[lbl]||{g:0,p:0,tasa:0};
-    const col=rd.tasa>=50?'#1a5c35':rd.tasa>=25?'#b8860b':'#8b1a1a';
+    const col=rd.tasa>=50?'#1a5c35':rd.tasa>0?'#b8860b':'#aaa';
     const isActive = lbl===rngKey && valor>0;
     return `<div class="eval-bar-row">
       <div class="eval-bar-lbl" style="${isActive?'color:var(--nv);font-weight:700':''}">${lbl}${isActive?' ◀':''}</div>
@@ -1160,9 +1160,10 @@ function evaluarOferta(){
   }).join('');
 
   const insightTxt = insights.join(' ');
-  const rec = score>=65?'<strong>Recomendación: invertir en esta oferta — los indicadores son favorables.</strong>':
-    score>=45?'<strong>Recomendación: gestionar activamente y hacer seguimiento cercano con el cliente.</strong>':
-    '<strong>Recomendación: evalúa bien si el costo de elaboración justifica la probabilidad antes de comprometer tiempo.</strong>';
+  const rec = score>=65?'<strong>Recomendación: priorizar esta oferta — los indicadores son favorables.</strong>':
+    score>=45?'<strong>Recomendación: gestionar activamente, visitar al cliente y confirmar el estado antes de elaborar la propuesta.</strong>':
+    score>=30?'<strong>Recomendación: visitar al cliente antes de invertir tiempo en la oferta — una conversación de 20 minutos puede cambiar el panorama.</strong>':
+    '<strong>Recomendación: agenda una visita antes de cotizar — entender la necesidad real es el primer paso para mejorar la probabilidad.</strong>';
   document.getElementById('ev-insight').innerHTML='💡 '+insightTxt+' '+rec;
 }
 
@@ -1485,7 +1486,7 @@ function buildAcercamiento(c){
 
   if(rec === 'GO'){
     prioridad = 'ALTA';
-    razon = `Cliente ganador${periodo} — ${vsGIM>0?'+'+vsGIM:vsGIM} p.p. vs promedio GIM. Proteger y crecer.`;
+    razon = `Cliente ganador${periodo} — ${vsGIM>=0?'+'+vsGIM+' p.p. sobre':'a '+Math.abs(vsGIM)+' p.p. de'} el promedio GIM. Proteger y crecer.`;
     acciones = [
       { tipo:'inmediata',   txt: activas > 0
           ? `Hacer seguimiento esta semana a ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar etapa, decisor y fecha estimada de cierre.`
@@ -1594,8 +1595,8 @@ function renderKPIs(){
   document.getElementById('kpi-strip').innerHTML = [
     {lbl:'Mis ofertas',    val:total.toLocaleString('es-CO'),  sub:periodoLbl,                   cc:'var(--nv)'},
     {lbl:'Ganadas',        val:ganadas,                         sub:'ofertas adjudicadas',         cc:'var(--go)'},
-    {lbl:'Tasa de cierre', val:tasa+'%',                        sub:'GIM global: '+GLOBAL_BENCH.tasa_global+'%',
-      cc:tasa>=GLOBAL_BENCH.tasa_global?'var(--go)':'var(--ng)'},
+    {lbl:'Tasa de cierre', val:tasa+'%',                        sub:'GIM '+({'todos':'histórico','2024':'2024','2025':'2025','2026':'2026','2y':'2025–26','3y':'2024–26'}[YEAR_FILT]||'')+': '+(TASA_GIM_BY_YEAR[YEAR_FILT]||GLOBAL_BENCH.tasa_global)+'%',
+      cc:tasa>=tasaEquipoPeriodo?'var(--go)':'var(--ca)'},
     {lbl:'Pipeline activo',val:fmt(pipeline),                   sub:vd.kpis.activas+' ofertas en curso', cc:'var(--gd)'},
     {lbl:'Valor ganado',   val:fmt(valor_adj),                  sub:periodoLbl,                   cc:'var(--nv)'},
   ].map(c=>`<div class="kc" style="--kcc:${c.cc}">
