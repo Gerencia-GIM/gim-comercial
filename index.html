@@ -645,6 +645,7 @@ body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────────
+const TASA_GIM_BY_YEAR = {"todos":36.7,"2024":38.9,"2025":33.9,"2026":37.3,"2y":34.6,"3y":36.4};
 const GLOBAL_BENCH = {"tasa_global": 36.7, "pipeline_total": 356053616057.0, "total_ofertas": 4102};
 const RANGO_LBLS = ["<50M","50-100M","100-200M","200-500M","500M-1MM",">1MM"];
 
@@ -762,10 +763,6 @@ function initApp(){
   document.getElementById('b-tasa').textContent  = GLOBAL_BENCH.tasa_global+'%';
   document.getElementById('b-total').textContent = GLOBAL_BENCH.total_ofertas.toLocaleString('es-CO');
   document.getElementById('b-pipe').textContent  = fmt(GLOBAL_BENCH.pipeline_total);
-  const diff = (k.tasa - GLOBAL_BENCH.tasa_global).toFixed(1);
-  const vsEl = document.getElementById('b-vs');
-  vsEl.textContent = (diff>=0?'+':'')+diff+'% vs equipo';
-  vsEl.style.color = diff>=0?'var(--go)':'var(--ng)';
 
   renderKPIs();
   setTab('cli');
@@ -1376,6 +1373,92 @@ function getFilteredClients(){
 
 
 // ── Recomendación de acercamiento — Director Comercial GIM ──────────────────────
+// Banco de consejos: cada cliente muestra un consejo diferente según su nombre (hash)
+function _pick(arr, seed){
+  // Deterministic pick based on client name so same client always gets same tip
+  let h = 0;
+  for(let i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i)) & 0xffff;
+  return arr[h % arr.length];
+}
+
+const TIPS_VISITA = {
+  GO: [
+    "No esperes una RFQ para visitar. Una visita mensual de 30 min sin agenda de venta te da visibilidad de proyectos que aún no se han publicado.",
+    "Llama antes de que llegue la licitación. Si el cliente ya te conoce cuando llega la RFQ, no compites solo por precio.",
+    "Después de cada entrega, visita 30 días después para preguntar cómo funcionó el producto. Muy pocos proveedores hacen esto — quien lo hace se recuerda.",
+    "Propón una visita técnica trimestral para presentar novedades de GIM. Así llegas a la especificación antes que la competencia.",
+    "Un cliente GO bien atendido te puede abrir puertas en otras empresas de su grupo. Pide una referencia en cada visita.",
+  ],
+  ESTRATÉGICO: [
+    "Propón una visita técnica sin propuesta — presenta un caso de éxito de GIM en un proyecto similar. El técnico que conoce los productos de GIM especifica a GIM.",
+    "Si solo conoces al comprador, solo puedes competir por precio. Pide que te presenten al ingeniero de proyecto en tu próxima visita.",
+    "Una visita cada 3 semanas con este cliente es lo que separa ganar del 42% al 55%. La frecuencia de contacto es directamente proporcional a la tasa de cierre.",
+    "Lleva a un técnico de GIM a la próxima visita. Una conversación técnica entre ingenieros genera confianza que ninguna cotización logra.",
+    "Pregunta en tu próxima visita: '¿Qué tendría que tener una propuesta para que el precio fuera secundario?' Esa respuesta vale más que 10 cotizaciones.",
+  ],
+  CAUTELA: [
+    "Antes de cotizar, visita. 20 minutos con el ingeniero te dicen si vale la pena invertir horas en la oferta — y te dan los argumentos para ganarla.",
+    "Ofrece una asesoría técnica gratuita de 30 minutos. Eso posiciona a GIM como experto y abre la puerta sin presión de venta.",
+    "No llegues con catálogo — llega con una pregunta: '¿Qué proyectos de infraestructura eléctrica tienen presupuestados para el próximo semestre?' Eso te diferencia del 90% de los comerciales.",
+    "Una visita bien preparada de 20 minutos te dice si el cliente tiene presupuesto, quién decide y cuándo compran. Sin esa información, cualquier oferta es un disparo al aire.",
+    "Propón mostrar un producto físico o hacer una demostración técnica en sus instalaciones. Ver es creer — especialmente en equipos eléctricos industriales.",
+  ],
+  REVISAR: [
+    "Antes de la próxima oferta, agenda una visita sin propuesta. No para vender — para entender por qué GIM no ha ganado. Esa conversación vale más que cualquier cotización.",
+    "Una visita directa con la pregunta correcta: '¿Qué necesitaría GIM para ser su proveedor preferente?' puede cambiar completamente la relación con este cliente.",
+    "Si no has visitado a este cliente en los últimos 60 días, no presentes oferta todavía. Primero visita, luego cotiza.",
+    "Cambia el contacto: si siempre has hablado con compras, pide una visita con el área técnica. Un nuevo interlocutor puede ser la diferencia.",
+    "Una visita de cierre de proceso — '¿Qué tuvo el ganador que GIM no tenía?' — es la inversión más rentable que puedes hacer con este cliente.",
+  ],
+};
+
+const TIPS_PRECIO = {
+  GO: [
+    "Si este cliente pide descuento, pregunta primero: '¿Cuánto fue la diferencia?' Si no saben el dato exacto, no fue precio — fue percepción de valor. Refuerza los diferenciales técnicos antes de la próxima oferta.",
+    "Con clientes GO el precio rara vez es el problema real. Si hay presión de precio, ofrece valor adicional (garantía extendida, soporte prioritario) antes de bajar el número.",
+    "Antes de hacer un descuento, pregúntate: ¿este cliente volvería a pagar precio normal la próxima vez? Si la respuesta es no, el descuento no resuelve nada — solo aplaza el problema.",
+    "Presenta siempre el costo total de propiedad: producto + instalación + garantía + soporte + tiempo de respuesta. GIM suele ser más competitivo en el total que en el unitario.",
+  ],
+  ESTRATÉGICO: [
+    "Si se pierde 'por precio', pregunta cuánto fue la diferencia exacta. Si es menos del 10%, el problema es de percepción de valor, no de precio. Cambia el mensaje, no el número.",
+    "En clientes estratégicos presenta el costo total de propiedad, no solo el precio del equipo. Instalación, garantía, plazo de entrega y soporte local suman — y ahí GIM suele ganar.",
+    "Cuando el cliente dice 'precio', muchas veces dice 'no me convenciste del valor'. La próxima vez, involucra al equipo técnico de GIM en la presentación antes de entregar la cifra.",
+    "Si pierdes seguido 'por precio' con este cliente, el problema puede ser que GIM no está llegando a la especificación técnica. Quien especifica, gana — independientemente del precio.",
+  ],
+  CAUTELA: [
+    "Antes de aceptar que se perdió por precio, pregunta si el cliente puede compartir el precio del ganador. Si no lo comparte, probablemente no fue precio — fue relación o especificación.",
+    "En clientes nuevos o en desarrollo, no compitas por precio — compite por confianza. Una propuesta técnicamente sólida con una empresa de respaldo vale más que el proveedor más barato.",
+    "Si el cliente solo te pide precio sin especificación técnica, es señal de que GIM aún no está posicionado como asesor. Propón primero una visita técnica gratuita.",
+  ],
+  REVISAR: [
+    "Si este cliente siempre responde 'precio' como razón de pérdida y nunca comparte cuánto fue la diferencia, puede que GIM no sea el perfil de proveedor que busca. Evalúa si vale la pena seguir invirtiendo esfuerzo.",
+    "Antes de bajar el precio, cambia el enfoque: lleva una propuesta técnica diferente, con un nuevo interlocutor o con un diferencial que los competidores no puedan copiar.",
+    "Una oferta ganada por precio bajo casi nunca genera un cliente fiel. Si GIM va a ganar con este cliente, que sea por valor técnico — eso sí construye una relación duradera.",
+  ],
+};
+
+const TIPS_PREDICTIVO = {
+  GO: [
+    "Revisa en qué meses ha comprado este cliente históricamente y contacta 6 semanas antes. Quien llega primero a la especificación, gana.",
+    "Pregunta en tu próxima visita: '¿Qué proyectos tienen presupuestados para el próximo semestre?' Esa pregunta sola te pone por delante de todos los competidores que esperan la RFQ.",
+    "Registra en el CRM la fecha estimada del próximo proyecto de este cliente. Una alerta en el calendario 6 semanas antes puede ser la diferencia entre estar en la lista corta o no.",
+  ],
+  ESTRATÉGICO: [
+    "No esperes la licitación — agenda una llamada mensual de 15 minutos para saber qué proyectos están en aprobación de presupuesto. Quien llega antes a la especificación, gana.",
+    "Pregunta por el plan de inversión del cliente para el próximo año. La información que obtienes en una conversación hoy puede ser una adjudicación en 6 meses.",
+    "Mapea el ciclo presupuestal de este cliente. ¿Cuándo aprueban inversiones? ¿Cuándo publican licitaciones? Con ese mapa puedes planear tus visitas con meses de anticipación.",
+  ],
+  CAUTELA: [
+    "Pregunta: '¿Tienen proyectos presupuestados para el próximo semestre donde GIM pueda asesorarles técnicamente desde ahora?' Eso convierte una visita en una oportunidad antes de que llegue la competencia.",
+    "Ofrece hacer una pre-oferta orientativa antes de la RFQ. Eso te da tiempo de ajustar la propuesta y te posiciona como el proveedor que mejor entiende la necesidad.",
+    "Identifica si este cliente tiene proyectos de mantenimiento recurrente. Los proyectos de mantenimiento son más predecibles y más fáciles de ganar que los de nueva inversión.",
+  ],
+  REVISAR: [
+    "Antes de invertir más tiempo en este cliente, identifica si tiene proyectos reales en pipeline o si GIM solo aparece cuando necesitan un tercer precio para comparar.",
+    "Pregunta directamente en la próxima visita si GIM está en su lista de proveedores habilitados para proyectos futuros. Si no estás habilitado, ese es el primer problema a resolver.",
+  ],
+};
+
 function buildAcercamiento(c){
   const rec      = c.rec      || 'CAUTELA';
   const tasa     = c.tasa     || 0;
@@ -1385,78 +1468,75 @@ function buildAcercamiento(c){
   const total    = ganadas + perdidas + activas;
   const valG     = c.valor_ganado   || 0;
   const valOf    = c.valor_ofertado || 0;
-  const tasaGIM  = 36.7;
+  const tasaGIM  = TASA_GIM_BY_YEAR[YEAR_FILT] || 36.7;
   const vsGIM    = +(tasa - tasaGIM).toFixed(1);
   const ticketProm = total > 0 ? valOf / total : 0;
   const periodo  = {'todos':'','2024':' (2024)','2025':' (2025)','2026':' (2026)',
     '2y':' (2025–2026)','3y':' (2024–2026)'}[YEAR_FILT]||'';
-
-  // Helper para formato de millones
   const fmtM = v => v>=1e9?'$'+(v/1e9).toFixed(1)+'MM':'$'+(v/1e6).toFixed(0)+'M';
+  const seed = (c['Associated Company']||'') + rec;
+
+  // Pick varied tips per client
+  const tipV = _pick(TIPS_VISITA[rec]   || TIPS_VISITA.CAUTELA,   seed+'v');
+  const tipP = _pick(TIPS_PRECIO[rec]   || TIPS_PRECIO.CAUTELA,   seed+'p');
+  const tipPr= _pick(TIPS_PREDICTIVO[rec]||TIPS_PREDICTIVO.CAUTELA,seed+'r');
 
   let prioridad, razon, acciones = [];
 
-  // ── GO ────────────────────────────────────────────────────────────────────
   if(rec === 'GO'){
     prioridad = 'ALTA';
     razon = `Cliente ganador${periodo} — ${vsGIM>0?'+'+vsGIM:vsGIM} p.p. vs promedio GIM. Proteger y crecer.`;
     acciones = [
-      { tipo:'inmediata', txt: activas > 0
+      { tipo:'inmediata',   txt: activas > 0
           ? `Hacer seguimiento esta semana a ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar etapa, decisor y fecha estimada de cierre.`
           : `Contactar esta semana para indagar proyectos del próximo trimestre. No esperar a que llegue la RFQ.` },
       { tipo:'estrategica', txt: valG > 500e6
           ? `Planear una reunión trimestral de revisión de proyectos — cliente de ${fmtM(valG)} ganados merece visibilidad anticipada de su pipeline.`
-          : `Presentar una línea de producto adicional de GIM que el cliente aún no haya comprado — el cliente GO ya confía en GIM, es el momento de ampliar.` },
-      { tipo:'precio', txt: `"Se perdió por precio": con clientes GO esto casi nunca es verdad. Si ocurre, pregunta directamente cuánto fue la diferencia — si es menor al 10%, el problema es de percepción de valor, no de precio. Refuerza los diferenciales técnicos de GIM antes de la próxima oferta.` },
-      { tipo:'predictivo', txt: `Seguimiento predictivo: este cliente tiene patrón de compra. Revisa en qué meses ha adjudicado históricamente y planea tu contacto 4–6 semanas antes — llegarás antes que la competencia.` },
-      { tipo:'tip', txt: `No esperes una RFQ para visitar a este cliente. Una visita de 30 minutos sin agenda de venta construye más relación que 5 cotizaciones — y te da visibilidad de proyectos que aún no se han publicado.` },
+          : `Presentar una línea de producto adicional de GIM que el cliente aún no haya comprado.` },
+      { tipo:'precio',      txt: tipP },
+      { tipo:'predictivo',  txt: tipPr },
+      { tipo:'tip',         txt: tipV },
     ];
-
-  // ── ESTRATÉGICO ───────────────────────────────────────────────────────────
   } else if(rec === 'ESTRATÉGICO'){
     prioridad = 'ALTA';
     const brecha = Math.abs(vsGIM).toFixed(1);
     razon = `Cliente clave${periodo} — tasa ${brecha} p.p. por debajo del promedio GIM. Hay que ganar más, no cotizar menos.`;
     acciones = [
-      { tipo:'inmediata', txt: activas > 0
-          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar si siguen vigentes, quién decide y si hay una fecha de resolución.`
+      { tipo:'inmediata',   txt: activas > 0
+          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar si siguen vigentes, quién decide y fecha de resolución.`
           : `Solicitar una reunión técnica (no de ventas) para entender los proyectos del cliente en los próximos 6 meses.` },
       { tipo:'estrategica', txt: perdidas > ganadas
-          ? `Planear la próxima oferta diferente: involucrar al equipo técnico de GIM desde el inicio, no solo al comercial. Las propuestas con respaldo técnico ganan más.`
+          ? `Planear la próxima oferta diferente: involucrar al equipo técnico de GIM desde el inicio para generar una propuesta más sólida.`
           : `Identificar al decisor técnico del cliente y generar contacto directo — las adjudicaciones estratégicas pasan por ingeniería, no solo por compras.` },
-      { tipo:'precio', txt: `"Se perdió por precio": en clientes estratégicos esto puede ser real, pero pregunta: ¿fue precio de producto o precio total del proyecto (incluye instalación, garantía, plazo)? Muchas veces GIM puede ser competitivo en el total aunque no en el unitario. Presenta siempre el costo total de propiedad.` },
-      { tipo:'predictivo', txt: `Seguimiento predictivo: no esperes a que el cliente publique la licitación. Agenda una llamada mensual corta (15 min) para saber qué proyectos están en aprobación — quien llega primero a la especificación técnica, gana.` },
-      { tipo:'tip', txt: `Propón una visita técnica sin propuesta — presenta un caso de éxito de GIM en un proyecto similar. El técnico que conoce los productos de GIM especifica a GIM. Eso vale más que cualquier cotización.` },
+      { tipo:'precio',      txt: tipP },
+      { tipo:'predictivo',  txt: tipPr },
+      { tipo:'tip',         txt: tipV },
     ];
-
-  // ── CAUTELA ───────────────────────────────────────────────────────────────
   } else if(rec === 'CAUTELA'){
     prioridad = 'MEDIA';
     razon = `Cliente con potencial${periodo} — historial aún corto para clasificación definitiva. Calificar antes de invertir tiempo.`;
     acciones = [
-      { tipo:'inmediata', txt: `Antes de la próxima oferta, confirmar con el cliente: ¿hay presupuesto aprobado?, ¿GIM está en su lista de proveedores habilitados?, ¿quién toma la decisión final?` },
+      { tipo:'inmediata',   txt: `Confirmar con el cliente: ¿hay presupuesto aprobado?, ¿GIM está habilitado como proveedor?, ¿quién toma la decisión final?` },
       { tipo:'estrategica', txt: ticketProm > 150e6
-          ? `El ticket promedio supera los ${fmtM(ticketProm)} — a este nivel el contacto debe ser con el gerente de proyecto o director técnico, no solo con compras.`
+          ? `El ticket promedio supera los ${fmtM(ticketProm)} — el contacto debe ser con el gerente de proyecto o director técnico, no solo con compras.`
           : `Ganar una oferta pequeña primero — un cliente satisfecho en una compra menor es la mejor puerta de entrada a proyectos grandes.` },
-      { tipo:'precio', txt: `"Se perdió por precio": antes de aceptar esa respuesta, pregunta si el cliente estaría dispuesto a compartir el precio del ganador. Si no lo comparte, probablemente no fue precio — fue relación o especificación técnica. Conocer la causa real es lo único que permite mejorar.` },
-      { tipo:'predictivo', txt: `Planeación de oferta: no esperes a recibir una RFQ. Pregunta al cliente qué proyectos tiene presupuestados para el próximo semestre y ofrece hacer una pre-oferta orientativa — eso te posiciona como asesor, no como proveedor.` },
-      { tipo:'tip', txt: `Antes de cotizar, visita. Una conversación de 20 minutos con el ingeniero te dirá si vale la pena invertir horas en la oferta — y te dará los argumentos exactos para ganarla.` },
+      { tipo:'precio',      txt: tipP },
+      { tipo:'predictivo',  txt: tipPr },
+      { tipo:'tip',         txt: tipV },
     ];
-
-  // ── REVISAR ───────────────────────────────────────────────────────────────
   } else {
     prioridad = 'BAJA';
-    razon = `Cliente con baja conversión${periodo} — evaluar si el esfuerzo de cotizar está siendo productivo antes de continuar.`;
+    razon = `Cliente con baja conversión${periodo} — evaluar si el esfuerzo de cotizar está siendo productivo.`;
     acciones = [
-      { tipo:'inmediata', txt: activas > 0
-          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — si llevan más de 60 días sin movimiento, cerrarlas en el CRM. Un pipeline limpio vale más que uno inflado.`
-          : `No enviar nueva oferta hasta tener una conversación directa que confirme que GIM es una opción real para este cliente.` },
+      { tipo:'inmediata',   txt: activas > 0
+          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — si llevan más de 60 días sin movimiento, cerrarlas en el CRM.`
+          : `No enviar nueva oferta hasta tener una visita o conversación directa que confirme que GIM es una opción real.` },
       { tipo:'estrategica', txt: total >= 8
-          ? `Con ${total} interacciones y ${ganadas} adjudicaciones, hacer una pausa estratégica: dedicar ese tiempo a clientes GO o Estratégico con mayor probabilidad de retorno.`
+          ? `Con ${total} interacciones y ${ganadas} adjudicaciones, hacer una pausa estratégica y dedicar ese tiempo a clientes GO o Estratégico.`
           : `Solo retomar si llega una oportunidad donde GIM tenga ventaja técnica clara — no cotizar por participar.` },
-      { tipo:'precio', txt: `"Se perdió por precio": si este cliente repite esa respuesta, es una señal de que GIM no está siendo evaluado por su valor técnico. Cambia el enfoque: en vez de cotizar más barato, presenta el costo de no tener la calidad de GIM (mantenimiento, garantías, soporte). Si aún así no funciona, este cliente puede no ser el mercado objetivo de GIM.` },
-      { tipo:'predictivo', txt: `Planeación de oferta: antes de invertir tiempo en preparar una propuesta para este cliente, evalúa si el tiempo vale más aplicado a un cliente con mejor historial. Cada oferta bien preparada cuesta entre 4 y 8 horas — úsalas donde la probabilidad sea mayor.` },
-      { tipo:'tip', txt: `Antes de la próxima oferta, agenda una visita sin propuesta. No para vender — para entender por qué GIM no ha ganado. Esa conversación vale más que cualquier cotización nueva.` },
+      { tipo:'precio',      txt: tipP },
+      { tipo:'predictivo',  txt: tipPr },
+      { tipo:'tip',         txt: tipV },
     ];
   }
 
@@ -1524,12 +1604,21 @@ function renderKPIs(){
     <div class="sub">${c.sub}</div>
   </div>`).join('');
 
-  // Update vs-equipo badge
-  const diff = (tasa - GLOBAL_BENCH.tasa_global).toFixed(1);
+  // Update vs-equipo badge — comparar contra el mismo período
+  const tasaEquipoPeriodo = TASA_GIM_BY_YEAR[YEAR_FILT] || GLOBAL_BENCH.tasa_global;
+  const diff = +(tasa - tasaEquipoPeriodo).toFixed(1);
   const vsEl = document.getElementById('b-vs');
   if(vsEl){
-    vsEl.textContent = (diff>=0?'+':'')+diff+'% vs equipo';
-    vsEl.style.color = diff>=0?'var(--go)':'var(--ng)';
+    if(diff >= 0){
+      vsEl.textContent = '+'+diff+'% vs equipo · ¡Por encima del promedio!';
+      vsEl.style.color = 'var(--go)';
+    } else if(diff >= -5){
+      vsEl.textContent = diff+'% vs equipo · Cerca del promedio — a seguir.';
+      vsEl.style.color = 'var(--ca)';
+    } else {
+      vsEl.textContent = diff+'% vs equipo · Hay oportunidad de mejora.';
+      vsEl.style.color = 'var(--ca)';
+    }
   }
 }
 
