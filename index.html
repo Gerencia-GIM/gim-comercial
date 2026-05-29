@@ -299,6 +299,53 @@ body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif
 .yf-chip.y2026.active{background:#4a1e6b;border-color:#4a1e6b}
 .yf-sep{color:var(--bd2);font-size:12px;margin:0 2px}
 .yf-note{font-size:10px;color:var(--mu);font-style:italic;margin-left:6px}
+
+/* ── Academia ───────────────────────────────────────────────────────────────*/
+.acad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.acad-card{background:var(--sf);border:1px solid var(--bd2);border-radius:8px;overflow:hidden;
+  transition:box-shadow .2s;cursor:pointer}
+.acad-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.acad-card-top{padding:20px 20px 14px;border-bottom:1px solid var(--bd)}
+.acad-card-icon{font-size:28px;margin-bottom:8px}
+.acad-card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+  color:var(--nv);margin-bottom:4px}
+.acad-card-sub{font-size:11px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
+.acad-card-body{padding:16px 20px}
+.acad-card-preview{font-size:12px;color:var(--mu);line-height:1.6;font-style:italic}
+.acad-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;
+  font-weight:600;margin-right:4px;margin-top:6px}
+.acad-tag-b2b{background:var(--nv);color:#fff}
+.acad-tag-precio{background:var(--ca-bg);color:var(--ca);border:1px solid var(--ca-bd)}
+.acad-tag-pipeline{background:var(--go-bg);color:var(--go);border:1px solid var(--go-bd)}
+.acad-tag-relacion{background:var(--es-bg);color:var(--es);border:1px solid var(--es-bd)}
+.acad-tag-negociacion{background:var(--ng-bg);color:var(--ng);border:1px solid var(--ng-bd)}
+
+/* Modal de lectura */
+.acad-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.5);z-index:1000;overflow-y:auto;padding:40px 20px}
+.acad-modal.open{display:flex;align-items:flex-start;justify-content:center}
+.acad-modal-inner{background:var(--sf);border-radius:10px;max-width:720px;width:100%;
+  padding:36px 40px;position:relative;margin:auto}
+.acad-modal-close{position:absolute;top:16px;right:20px;background:none;border:none;
+  font-size:22px;cursor:pointer;color:var(--mu);line-height:1}
+.acad-modal-close:hover{color:var(--tx)}
+.acad-modal-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;
+  color:var(--nv);margin-bottom:6px}
+.acad-modal-sub{font-size:11px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:24px}
+.acad-section{margin-bottom:22px}
+.acad-section-title{font-size:13px;font-weight:700;color:var(--gd);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:10px;padding-bottom:4px;
+  border-bottom:1px solid var(--bd)}
+.acad-section p{font-size:13px;color:var(--tx);line-height:1.7;margin-bottom:8px}
+.acad-section ul{padding-left:20px;margin:0}
+.acad-section li{font-size:13px;color:var(--tx);line-height:1.7;margin-bottom:6px}
+.acad-section li strong{color:var(--nv)}
+.acad-quote{background:var(--ca-bg);border-left:4px solid var(--gd);border-radius:4px;
+  padding:12px 16px;margin:14px 0;font-size:13px;font-style:italic;color:var(--tx);line-height:1.6}
+.acad-key{background:var(--nv);color:#fff;border-radius:6px;padding:14px 18px;
+  margin:14px 0;font-size:13px;line-height:1.6}
+.acad-key strong{color:var(--gd)}
+@media(max-width:600px){.acad-modal-inner{padding:24px 20px}}
 </style>
 </head>
 <body>
@@ -436,6 +483,7 @@ body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif
       <button class="tb" id="tab-rng" onclick="setTab('rng')">Mis Rangos</button>
       <button class="tb" id="tab-tend" onclick="setTab('tend')">Mi Tendencia</button>
       <button class="tb" id="tab-eval" onclick="setTab('eval')">🎯 Evaluar Oferta</button>
+      <button class="tb" id="tab-acad" onclick="setTab('acad')">🎓 Academia</button>
     </div>
 
     <!-- Panel Clientes -->
@@ -574,6 +622,24 @@ body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif
         </div>
       </div>
     </div>
+
+    <!-- Panel Academia -->
+    <div id="panel-acad" style="display:none">
+      <div class="stitle">🎓 Academia Comercial GIM</div>
+      <div class="ssub">Formación en ventas B2B · Estrategias para cerrar más y mejor</div>
+
+      <div class="acad-grid" id="acad-grid"></div>
+    </div>
+
+    <!-- Modal lectura -->
+    <div class="acad-modal" id="acad-modal">
+      <div class="acad-modal-inner">
+        <button class="acad-modal-close" onclick="closeAcad()">✕</button>
+        <div class="acad-modal-title" id="acad-modal-title"></div>
+        <div class="acad-modal-sub" id="acad-modal-sub"></div>
+        <div id="acad-modal-body"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -708,7 +774,7 @@ function initApp(){
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function setTab(t){
   currentTab = t;
-  ['cli','pipe','rng','tend','eval'].forEach(p=>{
+  ['cli','pipe','rng','tend','eval','acad'].forEach(p=>{
     document.getElementById('panel-'+p).style.display = p===t?'block':'none';
     document.getElementById('tab-'+p).classList.toggle('active',p===t);
   });
@@ -751,10 +817,27 @@ function renderCli(){
 
   document.getElementById('cli-tbody').innerHTML = data.map((c,i)=>{
     const r = REC[c.rec]||{cls:'bca',l:'—'};
-    const ac= c.acercamiento||{};
+    // Generar acercamiento dinámicamente con los datos del período filtrado
+    const ac = buildAcercamiento(c);
     const pri = PRI[ac.prioridad]||'';
-    const accionesList = (ac.acciones||[]).map((a,j)=>
-      `<div class="ac-action"><div class="ac-num">${j+1}</div><div>${a}</div></div>`).join('');
+    const TIPO_CFG = {
+      'inmediata':  {icon:'🔴', lbl:'AHORA',        col:'var(--ng)'},
+      'estrategica':{icon:'🔵', lbl:'ESTE MES',     col:'var(--nv)'},
+      'precio':     {icon:'💰', lbl:'VS PRECIO',    col:'var(--ca)'},
+      'predictivo': {icon:'📅', lbl:'PLANEAR',      col:'var(--go)'},
+      'tip':        {icon:'🤝', lbl:'TIP VISITA',   col:'var(--gd)'},
+    };
+    const accionesList = (ac.acciones||[]).map((a)=>{
+      const cfg = TIPO_CFG[a.tipo]||{icon:'•',lbl:'',col:'var(--mu)'};
+      const txt = typeof a === 'string' ? a : (a.txt||'');
+      return `<div class="ac-action" style="align-items:flex-start;margin-bottom:8px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;width:52px;margin-top:1px">
+          <span style="font-size:13px">${cfg.icon}</span>
+          <span style="font-size:8px;font-weight:700;color:${cfg.col};letter-spacing:1px">${cfg.lbl}</span>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--tx)">${txt}</div>
+      </div>`;
+    }).join('');
     return `
     <tr>
       <td><button class="expand-btn" onclick="toggleAc(${i})" id="exp-${i}">▶</button></td>
@@ -789,6 +872,7 @@ function toggleAc(i){
 function renderPipe(){
   const vd = VENDOR_DATA[currentUser]; if(!vd) return;
   const ALTA = ['Oferta con posibilidad de adjudicación','Negociacion'];
+  // Pipeline activo siempre muestra ofertas en curso (sin filtro de año — son del presente)
   document.getElementById('pipe-grid').innerHTML = vd.pipeline.map(p=>{
     const isAlta = ALTA.includes(p['Etapa del negocio']);
     return `<div class="pipe-card" style="border-left-color:${isAlta?'var(--go)':'var(--nv)'}">
@@ -803,7 +887,33 @@ function renderPipe(){
 // ── Rangos ────────────────────────────────────────────────────────────────────
 function renderRng(){
   const vd = VENDOR_DATA[currentUser]; if(!vd) return;
-  const data = vd.rng||{};
+  const years = getYearFilter();
+  const vyc   = VENDOR_YEAR_CLIENTS[currentUser]||{};
+
+  // Build rng from year-filtered data if a filter is active
+  let data = vd.rng||{};
+  if(years){
+    const BINS=[0,50e6,100e6,200e6,500e6,1e9,Infinity];
+    const tmpRng={};
+    RANGO_LBLS.forEach(l=>tmpRng[l]={g:0,p:0});
+    years.forEach(yr=>{
+      (vyc[yr]||[]).forEach(c=>{
+        // We don't have per-year rng, so approximate from client stats
+        // Use valor_ofertado/total as avg ticket to assign rng bucket
+        const avgVal = c.total>0?(c.valor_ofertado||0)/c.total:0;
+        let lbl='<50M';
+        for(let i=0;i<BINS.length-1;i++){if(avgVal>=BINS[i]&&avgVal<BINS[i+1]){lbl=RANGO_LBLS[i];break;}}
+        tmpRng[lbl].g += c.ganadas||0;
+        tmpRng[lbl].p += c.perdidas||0;
+      });
+    });
+    data={};
+    RANGO_LBLS.forEach(l=>{
+      const d=tmpRng[l];
+      data[l]={g:d.g,p:d.p,tasa:d.g+d.p>0?Math.round(d.g/(d.g+d.p)*1000)/10:0};
+    });
+  }
+
   document.getElementById('rng-grid').innerHTML = RANGO_LBLS.map(l=>{
     const d = data[l]||{g:0,p:0,tasa:0};
     const col = d.tasa>=50?'var(--go)':d.tasa>=25?'var(--ca)':'var(--ng)';
@@ -815,7 +925,7 @@ function renderRng(){
     </div>`;
   }).join('');
 
-  const rangos = RANGO_LBLS.map(l=>({lbl:l,...data[l]||{g:0,p:0,tasa:0}}));
+  const rangos = RANGO_LBLS.map(l=>({lbl:l,...(data[l]||{g:0,p:0,tasa:0})}));
   const fuertes= rangos.filter(r=>r.tasa>=50&&(r.g+r.p)>=3);
   const debiles = rangos.filter(r=>r.tasa<25&&(r.g+r.p)>=3);
   const mejor  = rangos.reduce((a,b)=>((b.g+b.p)>=3&&b.tasa>a.tasa)?b:a,{lbl:'—',tasa:0});
@@ -827,13 +937,22 @@ function renderRng(){
   if(mejor.lbl!=='—') txt += `Mejor rango: <strong>${mejor.lbl}</strong> con ${mejor.tasa}% (${mejor.g}G/${mejor.p}P). `;
   if(debiles.length) txt += `Rango con mayor dificultad: <strong>${debiles.map(r=>r.lbl).join(', ')}</strong>. `;
   if(peor.lbl!=='—'&&peor.lbl!==mejor.lbl) txt += `Antes de presentar ofertas en <strong>${peor.lbl}</strong>, evalúa si tienes una ventaja diferenciadora clara.`;
+  const rngPeriodo = {'todos':'','2024':' · 2024','2025':' · 2025','2026':' · 2026',
+    '2y':' · 2025–2026','3y':' · 2024–2026'}[YEAR_FILT]||'';
+  // Update ssub with period
+  const rngSub = document.querySelector('#panel-rng .ssub');
+  if(rngSub) rngSub.textContent = '¿En qué precio eres más competitivo?'+rngPeriodo+' · Verde ≥ 50% · Amarillo ≥ 25% · Rojo < 25%';
   document.getElementById('rng-insight').innerHTML = txt;
 }
 
 // ── Tendencia ─────────────────────────────────────────────────────────────────
 function renderTend(){
   const vd = VENDOR_DATA[currentUser]; if(!vd) return;
-  const data = (vd.monthly||[]).sort((a,b)=>a.mes>b.mes?1:-1);
+  const years = getYearFilter();
+  const allMonthly = vd.monthly||[];
+  const data = allMonthly
+    .filter(m => !years || years.includes((m.mes||'').slice(0,4)))
+    .sort((a,b)=>a.mes>b.mes?1:-1);
   const canvas = document.getElementById('tend-canvas');
   if(!canvas) return;
   canvas.width  = canvas.parentElement.offsetWidth - 40;
@@ -884,8 +1003,10 @@ function renderTend(){
 
   const totG=data.reduce((s,d)=>s+d.ganadas,0),totP=data.reduce((s,d)=>s+d.perdidas,0);
   const avgT=totG+totP>0?Math.round(totG/(totG+totP)*1000)/10:0;
+  const periodoLbl={'todos':'Historial completo','2024':'Año 2024','2025':'Año 2025',
+    '2026':'Año 2026','2y':'2025–2026','3y':'2024–2026'}[YEAR_FILT]||'Historial';
   document.getElementById('tend-kpis').innerHTML=[
-    {lbl:'Período',val:data.length+' meses'},
+    {lbl:'Período',val:periodoLbl},
     {lbl:'Ofertas',val:data.reduce((s,d)=>s+d.total,0)},
     {lbl:'Tasa promedio',val:avgT+'%'},
     {lbl:'Valor ofertado',val:fmt(data.reduce((s,d)=>s+d.valor_ofertado,0))},
@@ -1253,6 +1374,95 @@ function getFilteredClients(){
   });
 }
 
+
+// ── Recomendación de acercamiento — Director Comercial GIM ──────────────────────
+function buildAcercamiento(c){
+  const rec      = c.rec      || 'CAUTELA';
+  const tasa     = c.tasa     || 0;
+  const ganadas  = c.ganadas  || 0;
+  const perdidas = c.perdidas || 0;
+  const activas  = c.activas  || 0;
+  const total    = ganadas + perdidas + activas;
+  const valG     = c.valor_ganado   || 0;
+  const valOf    = c.valor_ofertado || 0;
+  const tasaGIM  = 36.7;
+  const vsGIM    = +(tasa - tasaGIM).toFixed(1);
+  const ticketProm = total > 0 ? valOf / total : 0;
+  const periodo  = {'todos':'','2024':' (2024)','2025':' (2025)','2026':' (2026)',
+    '2y':' (2025–2026)','3y':' (2024–2026)'}[YEAR_FILT]||'';
+
+  // Helper para formato de millones
+  const fmtM = v => v>=1e9?'$'+(v/1e9).toFixed(1)+'MM':'$'+(v/1e6).toFixed(0)+'M';
+
+  let prioridad, razon, acciones = [];
+
+  // ── GO ────────────────────────────────────────────────────────────────────
+  if(rec === 'GO'){
+    prioridad = 'ALTA';
+    razon = `Cliente ganador${periodo} — ${vsGIM>0?'+'+vsGIM:vsGIM} p.p. vs promedio GIM. Proteger y crecer.`;
+    acciones = [
+      { tipo:'inmediata', txt: activas > 0
+          ? `Hacer seguimiento esta semana a ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar etapa, decisor y fecha estimada de cierre.`
+          : `Contactar esta semana para indagar proyectos del próximo trimestre. No esperar a que llegue la RFQ.` },
+      { tipo:'estrategica', txt: valG > 500e6
+          ? `Planear una reunión trimestral de revisión de proyectos — cliente de ${fmtM(valG)} ganados merece visibilidad anticipada de su pipeline.`
+          : `Presentar una línea de producto adicional de GIM que el cliente aún no haya comprado — el cliente GO ya confía en GIM, es el momento de ampliar.` },
+      { tipo:'precio', txt: `"Se perdió por precio": con clientes GO esto casi nunca es verdad. Si ocurre, pregunta directamente cuánto fue la diferencia — si es menor al 10%, el problema es de percepción de valor, no de precio. Refuerza los diferenciales técnicos de GIM antes de la próxima oferta.` },
+      { tipo:'predictivo', txt: `Seguimiento predictivo: este cliente tiene patrón de compra. Revisa en qué meses ha adjudicado históricamente y planea tu contacto 4–6 semanas antes — llegarás antes que la competencia.` },
+      { tipo:'tip', txt: `No esperes una RFQ para visitar a este cliente. Una visita de 30 minutos sin agenda de venta construye más relación que 5 cotizaciones — y te da visibilidad de proyectos que aún no se han publicado.` },
+    ];
+
+  // ── ESTRATÉGICO ───────────────────────────────────────────────────────────
+  } else if(rec === 'ESTRATÉGICO'){
+    prioridad = 'ALTA';
+    const brecha = Math.abs(vsGIM).toFixed(1);
+    razon = `Cliente clave${periodo} — tasa ${brecha} p.p. por debajo del promedio GIM. Hay que ganar más, no cotizar menos.`;
+    acciones = [
+      { tipo:'inmediata', txt: activas > 0
+          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar si siguen vigentes, quién decide y si hay una fecha de resolución.`
+          : `Solicitar una reunión técnica (no de ventas) para entender los proyectos del cliente en los próximos 6 meses.` },
+      { tipo:'estrategica', txt: perdidas > ganadas
+          ? `Planear la próxima oferta diferente: involucrar al equipo técnico de GIM desde el inicio, no solo al comercial. Las propuestas con respaldo técnico ganan más.`
+          : `Identificar al decisor técnico del cliente y generar contacto directo — las adjudicaciones estratégicas pasan por ingeniería, no solo por compras.` },
+      { tipo:'precio', txt: `"Se perdió por precio": en clientes estratégicos esto puede ser real, pero pregunta: ¿fue precio de producto o precio total del proyecto (incluye instalación, garantía, plazo)? Muchas veces GIM puede ser competitivo en el total aunque no en el unitario. Presenta siempre el costo total de propiedad.` },
+      { tipo:'predictivo', txt: `Seguimiento predictivo: no esperes a que el cliente publique la licitación. Agenda una llamada mensual corta (15 min) para saber qué proyectos están en aprobación — quien llega primero a la especificación técnica, gana.` },
+      { tipo:'tip', txt: `Propón una visita técnica sin propuesta — presenta un caso de éxito de GIM en un proyecto similar. El técnico que conoce los productos de GIM especifica a GIM. Eso vale más que cualquier cotización.` },
+    ];
+
+  // ── CAUTELA ───────────────────────────────────────────────────────────────
+  } else if(rec === 'CAUTELA'){
+    prioridad = 'MEDIA';
+    razon = `Cliente con potencial${periodo} — historial aún corto para clasificación definitiva. Calificar antes de invertir tiempo.`;
+    acciones = [
+      { tipo:'inmediata', txt: `Antes de la próxima oferta, confirmar con el cliente: ¿hay presupuesto aprobado?, ¿GIM está en su lista de proveedores habilitados?, ¿quién toma la decisión final?` },
+      { tipo:'estrategica', txt: ticketProm > 150e6
+          ? `El ticket promedio supera los ${fmtM(ticketProm)} — a este nivel el contacto debe ser con el gerente de proyecto o director técnico, no solo con compras.`
+          : `Ganar una oferta pequeña primero — un cliente satisfecho en una compra menor es la mejor puerta de entrada a proyectos grandes.` },
+      { tipo:'precio', txt: `"Se perdió por precio": antes de aceptar esa respuesta, pregunta si el cliente estaría dispuesto a compartir el precio del ganador. Si no lo comparte, probablemente no fue precio — fue relación o especificación técnica. Conocer la causa real es lo único que permite mejorar.` },
+      { tipo:'predictivo', txt: `Planeación de oferta: no esperes a recibir una RFQ. Pregunta al cliente qué proyectos tiene presupuestados para el próximo semestre y ofrece hacer una pre-oferta orientativa — eso te posiciona como asesor, no como proveedor.` },
+      { tipo:'tip', txt: `Antes de cotizar, visita. Una conversación de 20 minutos con el ingeniero te dirá si vale la pena invertir horas en la oferta — y te dará los argumentos exactos para ganarla.` },
+    ];
+
+  // ── REVISAR ───────────────────────────────────────────────────────────────
+  } else {
+    prioridad = 'BAJA';
+    razon = `Cliente con baja conversión${periodo} — evaluar si el esfuerzo de cotizar está siendo productivo antes de continuar.`;
+    acciones = [
+      { tipo:'inmediata', txt: activas > 0
+          ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — si llevan más de 60 días sin movimiento, cerrarlas en el CRM. Un pipeline limpio vale más que uno inflado.`
+          : `No enviar nueva oferta hasta tener una conversación directa que confirme que GIM es una opción real para este cliente.` },
+      { tipo:'estrategica', txt: total >= 8
+          ? `Con ${total} interacciones y ${ganadas} adjudicaciones, hacer una pausa estratégica: dedicar ese tiempo a clientes GO o Estratégico con mayor probabilidad de retorno.`
+          : `Solo retomar si llega una oportunidad donde GIM tenga ventaja técnica clara — no cotizar por participar.` },
+      { tipo:'precio', txt: `"Se perdió por precio": si este cliente repite esa respuesta, es una señal de que GIM no está siendo evaluado por su valor técnico. Cambia el enfoque: en vez de cotizar más barato, presenta el costo de no tener la calidad de GIM (mantenimiento, garantías, soporte). Si aún así no funciona, este cliente puede no ser el mercado objetivo de GIM.` },
+      { tipo:'predictivo', txt: `Planeación de oferta: antes de invertir tiempo en preparar una propuesta para este cliente, evalúa si el tiempo vale más aplicado a un cliente con mejor historial. Cada oferta bien preparada cuesta entre 4 y 8 horas — úsalas donde la probabilidad sea mayor.` },
+      { tipo:'tip', txt: `Antes de la próxima oferta, agenda una visita sin propuesta. No para vender — para entender por qué GIM no ha ganado. Esa conversación vale más que cualquier cotización nueva.` },
+    ];
+  }
+
+  return { prioridad, razon, acciones };
+}
+
 function renderCurrentTab(){
   renderKPIs();   // always update KPIs when filter or tab changes
   if(currentTab==='cli')  renderCli();
@@ -1322,6 +1532,329 @@ function renderKPIs(){
     vsEl.style.color = diff>=0?'var(--go)':'var(--ng)';
   }
 }
+
+
+// ── Academia Comercial GIM ────────────────────────────────────────────────────
+const ACADEMIA = [
+  {
+    id: 'b2b-ciclo',
+    icon: '🔄',
+    title: 'El Ciclo de Venta B2B Industrial',
+    sub: 'Fundamentos · Ventas B2B',
+    tags: ['b2b'],
+    preview: 'En B2B industrial no se vende en una llamada. Conoce las 6 etapas del ciclo y qué hacer en cada una para no perder oportunidades.',
+    sections: [
+      { title: '¿Por qué el B2B industrial es diferente?', content: `
+        <p>En ventas B2B industrial como las de GIM, el proceso de compra involucra múltiples personas, presupuestos aprobados con meses de anticipación y especificaciones técnicas que muchas veces ya vienen escritas para un proveedor específico.</p>
+        <p>El comercial que entiende este ciclo llega antes, habla con las personas correctas y no desperdicia tiempo cotizando proyectos que ya están perdidos.</p>
+      `},
+      { title: 'Las 6 etapas del ciclo de compra del cliente', content: `
+        <ul>
+          <li><strong>1. Identificación de necesidad:</strong> El cliente detecta que necesita algo. Aquí GIM aún no existe en su radar. El objetivo es estar presente en esta etapa con visitas técnicas y contacto preventivo.</li>
+          <li><strong>2. Especificación técnica:</strong> Ingeniería define qué necesitan exactamente. Esta es la etapa más crítica — quien influye en la especificación, aumenta sus probabilidades de ganar 3x. Si GIM no está aquí, llegará tarde.</li>
+          <li><strong>3. Búsqueda de proveedores:</strong> Compras emite la RFQ. Si llegaste en esta etapa, ya estás en desventaja — alguien más ya influyó en la especificación.</li>
+          <li><strong>4. Evaluación de ofertas:</strong> Comparan propuestas. Aquí el precio importa, pero también el soporte técnico, el plazo y la confianza en el proveedor.</li>
+          <li><strong>5. Negociación:</strong> El cliente negocia condiciones. Llegar sin argumentos de valor hace que el único argumento sea el precio.</li>
+          <li><strong>6. Adjudicación y ejecución:</strong> Se firma y se ejecuta. La satisfacción aquí determina si el cliente vuelve o no.</li>
+        </ul>
+      `},
+      { title: 'La regla de oro', content: `
+        <div class="acad-quote">"El 80% de las licitaciones ya tienen un ganador antes de publicarse. Tu trabajo es ser ese ganador — y eso ocurre en la etapa de especificación, no en la de cotización."</div>
+        <p>Acción práctica: identifica en tu cartera qué clientes tienen proyectos en etapa 1 o 2 y agenda una visita técnica antes de que llegue la RFQ. No para vender — para entender y para que te conozcan. El comercial que aparece solo cuando hay RFQ compite solo por precio.</p>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Para GIM:</strong> Los clientes GO de tu cartera son los que más fácil te dan acceso a la etapa de especificación. Úsalos para entender qué proyectos vienen y pide que te incluyan en la definición técnica. Un cliente GO bien atendido es tu mejor vendedor interno.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'precio-valor',
+    icon: '💰',
+    title: '"Se Perdió por Precio" — La Excusa Más Cara del Comercial',
+    sub: 'Manejo de objeciones · Precio vs Valor',
+    tags: ['precio','negociacion'],
+    preview: '"Se perdió por precio" es la frase más repetida y la menos analizada. Aprende cuándo es verdad, cuándo es mentira y qué hacer en cada caso.',
+    sections: [
+      { title: '¿Cuándo SÍ se pierde por precio?', content: `
+        <ul>
+          <li>Cuando el cliente compra un commodity donde GIM no tiene diferencial técnico.</li>
+          <li>Cuando la diferencia supera el 15–20% y el cliente no percibe valor adicional.</li>
+          <li>Cuando el presupuesto del cliente estaba mal calibrado desde el inicio.</li>
+        </ul>
+        <p><strong>En estos casos:</strong> evaluar si vale la pena participar en futuras licitaciones similares con este cliente o si hay que redirigir el esfuerzo.</p>
+      `},
+      { title: '¿Cuándo NO se pierde por precio (aunque eso digan)?', content: `
+        <ul>
+          <li>Cuando la especificación técnica ya estaba escrita para otro proveedor.</li>
+          <li>Cuando el decisor ya tenía una relación preestablecida con el competidor.</li>
+          <li>Cuando GIM llegó tarde al proceso y no tuvo oportunidad de influir.</li>
+          <li>Cuando la propuesta no estaba alineada con la necesidad real del cliente.</li>
+        </ul>
+        <div class="acad-quote">"Si el cliente no puede decirte exactamente cuánto fue la diferencia de precio, probablemente no fue precio."</div>
+      `},
+      { title: 'Cómo responder la objeción de precio en vivo', content: `
+        <ul>
+          <li><strong>Paso 1 — Pregunta el dato exacto:</strong> "¿Cuánto fue la diferencia?" Si no lo saben o no lo dicen, no fue precio.</li>
+          <li><strong>Paso 2 — Presenta el costo total:</strong> No compares precio de producto, compara el costo total de propiedad: producto + instalación + garantía + soporte + tiempo de respuesta. GIM suele ser más competitivo en el total.</li>
+          <li><strong>Paso 3 — Defiende el valor técnico:</strong> "Entendemos que hay opciones más económicas. La diferencia está en X (especificación, garantía, respaldo local). ¿Ese diferencial tiene valor para su operación?"</li>
+          <li><strong>Paso 4 — Si aún así no cierra:</strong> Pregunta qué necesitaría GIM para ser considerado en el próximo proyecto. Esa información vale más que descuentos.</li>
+        </ul>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Regla práctica:</strong> Si GIM pierde más del 30% de sus ofertas "por precio" con un mismo cliente, el problema no es el precio — es que GIM no está influyendo en la especificación. Sube una etapa en el ciclo de compra.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'pipeline',
+    icon: '📅',
+    title: 'Gestión Predictiva del Pipeline',
+    sub: 'Planeación · Seguimiento inteligente',
+    tags: ['pipeline'],
+    preview: 'Un pipeline lleno de ofertas viejas es peor que uno vacío. Aprende a construir un pipeline limpio, predecible y que realmente cierre.',
+    sections: [
+      { title: '¿Qué es un pipeline sano?', content: `
+        <p>Un pipeline sano tiene ofertas en todas las etapas, con fechas de cierre realistas y con seguimiento activo. Un pipeline enfermo tiene muchas ofertas pero pocas con movimiento reciente — eso se llama "pipeline zombie".</p>
+        <p><strong>Señal de alerta:</strong> Si más del 30% de tus ofertas activas llevan más de 60 días sin actualización, tu pipeline está inflado y tu forecast es poco confiable.</p>
+      `},
+      { title: 'El seguimiento predictivo: llegar antes que la competencia', content: `
+        <ul>
+          <li><strong>Mapea los ciclos de tu cliente:</strong> ¿En qué meses del año suele comprar? ¿Cuándo aprueba presupuestos? Muchos clientes industriales tienen ciclos repetibles — apréndetelos.</li>
+          <li><strong>Contacto preventivo 6 semanas antes:</strong> Si un cliente suele adjudicar en septiembre, tu contacto debe ser en julio — no cuando publique la RFQ en agosto.</li>
+          <li><strong>Pregunta por el pipeline del cliente:</strong> "¿Qué proyectos tienen presupuestados para el próximo semestre?" Esta pregunta sola te diferencia del 90% de los comerciales.</li>
+          <li><strong>Registra todo en el CRM:</strong> Una conversación no registrada no existe. El CRM es tu memoria comercial — úsala.</li>
+        </ul>
+      `},
+      { title: 'Las 3 preguntas que califican una oportunidad', content: `
+        <ul>
+          <li><strong>¿Hay presupuesto aprobado?</strong> Sin presupuesto, la oportunidad no es real todavía.</li>
+          <li><strong>¿Quién decide?</strong> Si no sabes quién firma la orden de compra, estás hablando con la persona equivocada.</li>
+          <li><strong>¿Cuál es la fecha real de decisión?</strong> "Pronto" no es una fecha. Sin fecha, no hay seguimiento efectivo.</li>
+        </ul>
+        <div class="acad-quote">"Una oferta sin fecha de decisión es un deseo, no una oportunidad."</div>
+      `},
+      { title: 'Cómo limpiar el pipeline sin perder oportunidades', content: `
+        <ul>
+          <li>Oferta sin contacto en 60+ días: llamar para confirmar vigencia. Si el cliente no responde en 2 intentos, cerrar como perdida y reabrir cuando haya señal.</li>
+          <li>Oferta en "Seguimiento" por más de 90 días: o avanza o se cierra. Las ofertas que no avanzan bloquean el pipeline real.</li>
+          <li>Nunca borres una oferta perdida: es información histórica valiosa para entender patrones de pérdida.</li>
+        </ul>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Meta práctica:</strong> Cada lunes revisar las 5 ofertas activas más antiguas de tu pipeline. Si no puedes describir en una línea cuál es el próximo paso y cuándo, esa oferta necesita acción inmediata o debe cerrarse.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'relacion-b2b',
+    icon: '🤝',
+    title: 'Construir Relaciones en B2B Industrial',
+    sub: 'Desarrollo de clientes · Relación comercial',
+    tags: ['relacion','b2b'],
+    preview: 'En B2B industrial la relación personal no reemplaza la propuesta técnica, pero sin relación ninguna propuesta técnica gana. Aprende a construirla de forma profesional.',
+    sections: [
+      { title: 'Por qué la relación importa en B2B industrial', content: `
+        <p>En proyectos de alta complejidad técnica y alto valor, dos propuestas similares en precio y especificación casi siempre las gana quien tiene mejor relación con el decisor. Esto no es corrupción — es confianza. Y la confianza se construye antes de la licitación.</p>
+      `},
+      { title: 'Los 4 contactos que necesitas en cada cliente clave', content: `
+        <ul>
+          <li><strong>El técnico / ingeniero:</strong> Define la especificación. Si él conoce los productos de GIM, tienes ventaja en la etapa más crítica del ciclo.</li>
+          <li><strong>El gerente de proyecto:</strong> Decide si el proyecto avanza y cuándo. Te da visibilidad anticipada del pipeline del cliente.</li>
+          <li><strong>El comprador / supply chain:</strong> Ejecuta la orden. No decide, pero puede bloquear o acelerar el proceso.</li>
+          <li><strong>El sponsor ejecutivo:</strong> En clientes estratégicos, conocer al director o gerente general abre puertas que el técnico no puede abrir.</li>
+        </ul>
+        <div class="acad-quote">"Si solo conoces al comprador, solo podrás competir por precio. Si conoces al técnico, puedes competir por valor."</div>
+      `},
+      { title: 'Cómo construir relación sin ser invasivo', content: `
+        <ul>
+          <li><strong>Visita técnica sin propuesta:</strong> Propón una visita para presentar novedades de producto o casos de éxito — sin agenda de venta. Genera confianza sin presión.</li>
+          <li><strong>Comparte información útil:</strong> Un artículo técnico relevante, una norma nueva del sector, un caso de aplicación similar. Posiciona a GIM como referente técnico.</li>
+          <li><strong>Seguimiento post-entrega:</strong> Llama 30 días después de una entrega para preguntar cómo funcionó el producto. Pocos proveedores hacen esto y quien lo hace se recuerda.</li>
+          <li><strong>Frecuencia correcta:</strong> Cliente GO: contacto mensual. Estratégico: cada 3 semanas. Cautela: cada 45 días. Revisar: cuando haya algo concreto que ofrecer.</li>
+        </ul>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Regla práctica:</strong> Por cada cliente estratégico en tu cartera, deberías tener al menos 2 contactos activos dentro del cliente — no solo el comprador. Si solo tienes uno, estás a una rotación de personal de perder toda la relación.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'negociacion',
+    icon: '🎯',
+    title: 'Negociación B2B — Cerrar sin Regalar Margen',
+    sub: 'Negociación · Cierre de ventas',
+    tags: ['negociacion','precio'],
+    preview: 'El momento de la negociación es donde más margen se pierde innecesariamente. Aprende a defender el precio de GIM con argumentos, no con descuentos.',
+    sections: [
+      { title: 'El error más común en negociación B2B', content: `
+        <p>El error más común es hacer concesiones de precio antes de que el cliente realmente las pida, o ceder rápido ante la primera objeción. Esto destruye margen y credibilidad — el cliente aprende que siempre hay descuento disponible.</p>
+      `},
+      { title: 'Las 5 reglas de negociación en ventas B2B industrial', content: `
+        <ul>
+          <li><strong>1. Nunca el primero en ceder:</strong> Si el cliente pide descuento, primero pregunta qué necesita exactamente: ¿precio, plazo de pago, garantía extendida? A veces lo que piden no es dinero.</li>
+          <li><strong>2. Cada concesión tiene contrapartida:</strong> "Puedo mejorar el precio si el pedido incluye X unidades" o "si el pago es de contado". Nunca dar sin recibir algo a cambio.</li>
+          <li><strong>3. Defiende con valor, no con argumentos de costo:</strong> "El precio refleja la garantía de 2 años, el soporte local y el tiempo de entrega de 3 semanas" — no "es que los materiales son caros".</li>
+          <li><strong>4. Conoce tu límite antes de entrar:</strong> Define antes de la negociación el precio mínimo aceptable. Sin ese número claro, cedes más de lo necesario bajo presión.</li>
+          <li><strong>5. El silencio es una herramienta:</strong> Después de presentar tu propuesta o tu límite, calla. Quien habla primero cede primero.</li>
+        </ul>
+      `},
+      { title: 'Frases que funcionan en negociación', content: `
+        <ul>
+          <li>"Entiendo que el precio es importante. ¿Qué tendría que incluir la propuesta para que el precio fuera secundario?"</li>
+          <li>"Puedo revisar las condiciones, pero necesito entender exactamente qué diferencia hay con la otra oferta."</li>
+          <li>"Ese precio no me permite garantizar la calidad que GIM tiene como estándar. ¿Qué podemos ajustar en el alcance?"</li>
+          <li>"Si llegamos a ese precio, ¿hay algo más que necesiten para tomar la decisión hoy?"</li>
+        </ul>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Regla de oro GIM:</strong> Antes de dar un descuento, pregúntate: ¿este cliente volvería a comprar a precio normal la próxima vez? Si la respuesta es no, el descuento no resuelve el problema — solo lo aplaza.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'visitas',
+    icon: '🤝',
+    title: 'La Visita Comercial — Tu Arma Más Poderosa',
+    sub: 'Desarrollo de clientes · Visitas estratégicas',
+    tags: ['relacion','b2b','pipeline'],
+    preview: 'En B2B industrial el comercial que más visita, más gana. No porque insiste — sino porque llega primero, entiende mejor y genera confianza antes de que empiece la competencia.',
+    sections: [
+      { title: 'Por qué visitar más y cotizar menos', content: `
+        <p>El error más común en ventas B2B industrial es pasar el 80% del tiempo elaborando ofertas y el 20% frente al cliente. Debería ser al revés.</p>
+        <p>Cada oferta que elaboras sin haber visitado al cliente primero tiene una probabilidad de éxito cercana al 15%. Cada oferta que elaboras después de una visita técnica tiene una probabilidad superior al 50%.</p>
+        <div class="acad-quote">"Una oferta sin visita previa es una lotería. Una oferta después de una visita es una decisión informada."</div>
+      `},
+      { title: 'Los 3 tipos de visita y cuándo hacer cada una', content: `
+        <ul>
+          <li><strong>Visita de relacionamiento:</strong> Sin agenda de venta. Objetivo: conocer al cliente, entender su operación y sus proyectos futuros. Frecuencia recomendada: trimestral con clientes GO y Estratégico. Lo que dices: "Quería pasar a saludarlos y contarles algunas novedades de GIM que pueden ser relevantes para sus proyectos."</li>
+          <li><strong>Visita técnica:</strong> Presentas una solución, un caso de éxito o una capacitación corta. Objetivo: posicionar a GIM como referente técnico e influir en la especificación. Lo que logras: el cliente piensa en GIM cuando define el próximo proyecto.</li>
+          <li><strong>Visita de seguimiento post-entrega:</strong> 30 días después de una entrega, visitar para preguntar cómo funcionó. Objetivo: fidelizar y detectar la próxima necesidad antes de que llegue al mercado. Muy pocos proveedores hacen esto — quien lo hace se recuerda.</li>
+        </ul>
+      `},
+      { title: 'Cómo preparar una visita efectiva en 15 minutos', content: `
+        <ul>
+          <li><strong>Revisa el historial:</strong> ¿Qué ha comprado este cliente antes? ¿Cuándo fue el último contacto? ¿Hay ofertas activas?</li>
+          <li><strong>Define un objetivo claro:</strong> ¿Qué quieres saber al salir de esa visita? (proyectos en pipeline, quién decide, qué problemas tienen actualmente)</li>
+          <li><strong>Prepara una pregunta abierta:</strong> "¿Qué proyectos de infraestructura eléctrica tienen presupuestados para el segundo semestre?" Una pregunta bien hecha vale más que una presentación de 20 slides.</li>
+          <li><strong>Lleva algo de valor:</strong> Un caso técnico similar, una ficha de producto nueva, una norma técnica relevante. Nunca llegues con las manos vacías.</li>
+          <li><strong>Registra lo que aprendes:</strong> Inmediatamente después de la visita, actualiza el CRM con los proyectos mencionados, los decisores identificados y la fecha del próximo contacto.</li>
+        </ul>
+      `},
+      { title: 'Las preguntas que abren oportunidades en una visita', content: `
+        <ul>
+          <li>"¿Qué proyectos de expansión o mantenimiento tienen presupuestados para los próximos 6 meses?"</li>
+          <li>"¿Hay proyectos que estén en etapa de aprobación de presupuesto donde podamos asesorarles técnicamente desde ahora?"</li>
+          <li>"¿Con qué proveedores están trabajando actualmente para este tipo de equipos? ¿Qué valoran más de ellos?"</li>
+          <li>"Si pudiéramos mejorar algo en cómo los atendemos, ¿qué sería?"</li>
+          <li>"¿Conocen a alguien más en su grupo o en otras empresas que pueda necesitar este tipo de soluciones?"</li>
+        </ul>
+        <div class="acad-quote">"El cliente que habla durante la visita es el cliente que compra. Tu trabajo es hacer las preguntas correctas y escuchar."</div>
+      `},
+      { title: 'Frecuencia de visitas recomendada por clasificación', content: `
+        <ul>
+          <li><strong>✅ GO:</strong> Visita mensual de relacionamiento + visita técnica trimestral. Son tus mejores clientes — protégelos con presencia.</li>
+          <li><strong>🎯 Estratégico:</strong> Visita cada 3 semanas. El objetivo es entender por qué se pierden las ofertas y construir la relación con el decisor técnico.</li>
+          <li><strong>⚠️ Cautela:</strong> Visita antes de cada oferta y una visita de prospección cada 45 días para entender si el potencial es real.</li>
+          <li><strong>🔍 Revisar:</strong> Una visita sin propuesta para entender qué necesitaría GIM para ser competitivo. Si después de esa visita no hay señal clara, redirigir el tiempo.</li>
+        </ul>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Regla de oro:</strong> Por cada 3 ofertas que elabores, deberías tener al menos 2 visitas previas registradas en el CRM. Si el ratio es menor, estás cotizando demasiado y visitando muy poco — y eso se refleja directamente en la tasa de cierre.
+        </div>
+      `}
+    ]
+  },
+  {
+    id: 'prospeccion',
+    icon: '🔍',
+    title: 'Prospección Inteligente en B2B',
+    sub: 'Desarrollo de mercado · Nuevos clientes',
+    tags: ['b2b','pipeline'],
+    preview: 'Prospectar en B2B industrial no es llamar en frío a un directorio. Es identificar quién tiene el problema que GIM resuelve y llegar antes de que lo sepa.',
+    sections: [
+      { title: '¿Quién es el cliente ideal de GIM?', content: `
+        <p>Antes de prospectar, hay que saber a quién buscar. El cliente ideal de GIM es una empresa industrial con proyectos de infraestructura eléctrica recurrentes, con un decisor técnico accesible y con presupuesto de inversión activo.</p>
+        <p>Mira tu cartera de clientes GO: ¿qué tienen en común? Sector, tamaño, tipo de proyecto. Eso es el perfil que debes replicar.</p>
+      `},
+      { title: 'Las 4 fuentes de prospectos más efectivas en B2B industrial', content: `
+        <ul>
+          <li><strong>Referidos de clientes GO:</strong> Un cliente satisfecho que te recomienda vale 10 llamadas en frío. Pídelo explícitamente: "¿Conoce alguna empresa con necesidades similares donde pueda presentar a GIM?"</li>
+          <li><strong>Proyectos de infraestructura publicados:</strong> Licitaciones públicas, permisos de construcción, anuncios de expansión industrial. Quien llega primero a un proyecto nuevo parte con ventaja.</li>
+          <li><strong>Integradores y contratistas:</strong> En el sector eléctrico industrial, el integrador o el contratista EPC (Engineering, Procurement, Construction) suele ser el que especifica los equipos. Un buen integrador puede traer 5 clientes finales.</li>
+          <li><strong>LinkedIn y gremios sectoriales:</strong> Seguir a gerentes de planta, directores de ingeniería y jefes de mantenimiento en sectores clave (petróleo y gas, minería, generación). Una conversación técnica en LinkedIn puede abrir una reunión.</li>
+        </ul>
+      `},
+      { title: 'El primer contacto con un prospecto', content: `
+        <ul>
+          <li>No empieces vendiendo — empieza con una pregunta o una información útil.</li>
+          <li>Menciona un cliente o proyecto de referencia del mismo sector.</li>
+          <li>Propón algo de valor bajo compromiso: "¿Puedo enviarte un caso técnico de una solución similar que implementamos con [empresa del mismo sector]?"</li>
+          <li>El objetivo del primer contacto NO es vender — es conseguir una segunda conversación.</li>
+        </ul>
+        <div class="acad-quote">"Nadie quiere que le vendan, pero todos quieren comprar. Tu trabajo es hacer que el prospecto quiera seguir hablando contigo."</div>
+      `},
+      { title: 'Clave GIM', content: `
+        <div class="acad-key">
+          <strong>Meta práctica:</strong> Cada mes, identificar 3 prospectos nuevos en sectores donde GIM ya tiene clientes GO. Usar esos clientes como referencia y pedir una reunión técnica de 30 minutos. Sin presión de venta — solo para entender su operación.
+        </div>
+      `}
+    ]
+  },
+];
+
+function renderAcad(){
+  document.getElementById('acad-grid').innerHTML = ACADEMIA.map(m=>{
+    const tagMap = {b2b:'acad-tag-b2b',precio:'acad-tag-precio',pipeline:'acad-tag-pipeline',
+      relacion:'acad-tag-relacion',negociacion:'acad-tag-negociacion'};
+    const tags = m.tags.map(t=>`<span class="acad-tag ${tagMap[t]||''}">${t.toUpperCase()}</span>`).join('');
+    return `<div class="acad-card" onclick="openAcad('${m.id}')">
+      <div class="acad-card-top">
+        <div class="acad-card-icon">${m.icon}</div>
+        <div class="acad-card-title">${m.title}</div>
+        <div class="acad-card-sub">${m.sub}</div>
+      </div>
+      <div class="acad-card-body">
+        <div class="acad-card-preview">${m.preview}</div>
+        <div style="margin-top:10px">${tags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAcad(id){
+  const m = ACADEMIA.find(a=>a.id===id); if(!m) return;
+  document.getElementById('acad-modal-title').textContent = m.icon+' '+m.title;
+  document.getElementById('acad-modal-sub').textContent = m.sub;
+  document.getElementById('acad-modal-body').innerHTML = m.sections.map(s=>`
+    <div class="acad-section">
+      <div class="acad-section-title">${s.title}</div>
+      ${s.content}
+    </div>`).join('');
+  document.getElementById('acad-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeAcad(){
+  document.getElementById('acad-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// Close modal on background click
+document.addEventListener('click', e=>{
+  const modal = document.getElementById('acad-modal');
+  if(e.target === modal){ closeAcad(); }
+});
 
 </script>
 </body>
