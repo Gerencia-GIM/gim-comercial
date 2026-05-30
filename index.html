@@ -952,7 +952,13 @@ function renderTend(){
     .sort((a,b)=>a.mes>b.mes?1:-1);
   const canvas = document.getElementById('tend-canvas');
   if(!canvas) return;
-  canvas.width  = canvas.parentElement.offsetWidth - 40;
+  // If panel just became visible, offsetWidth may still be 0 — retry after paint
+  const parentW = canvas.parentElement.offsetWidth;
+  if(parentW < 100){
+    setTimeout(renderTend, 50);
+    return;
+  }
+  canvas.width  = parentW - 40;
   canvas.height = 220;
   const W=canvas.width, H=canvas.height;
   const PAD={t:30,r:20,b:55,l:70};
@@ -1544,87 +1550,6 @@ function buildAcercamiento(c){
   return { prioridad, razon, acciones };
 }
 
-function renderCurrentTab(){
-  renderKPIs();   // always update KPIs when filter or tab changes
-  if(currentTab==='cli')  renderCli();
-  if(currentTab==='pipe') renderPipe();
-  if(currentTab==='rng')  renderRng();
-  if(currentTab==='tend') renderTend();
-  if(currentTab==='eval') populateEvalClients();
-}
-
-function renderKPIs(){
-  const vd = VENDOR_DATA[currentUser]; if(!vd) return;
-  const years = getYearFilter();
-  const vyc   = VENDOR_YEAR_CLIENTS[currentUser] || {};
-  const allowed = CLIENT_VISIBILITY[currentUser];
-
-  let total=0, ganadas=0, perdidas=0, activas=0, pipeline=0, valor_adj=0;
-
-  if(!years){
-    // Full history from kpis
-    const k = vd.kpis;
-    total     = k.total;
-    ganadas   = k.ganadas;
-    perdidas  = k.perdidas;
-    activas   = k.activas;
-    pipeline  = k.pipeline;
-    valor_adj = k.valor_adj;
-  } else {
-    // Aggregate from per-year data
-    years.forEach(yr => {
-      (vyc[yr]||[]).forEach(c => {
-        if(allowed && allowed.length>0 && !allowed.includes(c['Associated Company'])) return;
-        total     += c.total||0;
-        ganadas   += c.ganadas||0;
-        perdidas  += c.perdidas||0;
-        activas   += c.activas||0;
-        valor_adj += c.valor_ganado||0;
-      });
-    });
-    // Pipeline: only from active offers (always current, not filtered by year)
-    pipeline = vd.kpis.pipeline;
-  }
-
-  const tasa = ganadas+perdidas>0 ? Math.round(ganadas/(ganadas+perdidas)*1000)/10 : 0;
-  const periodoLbl = {
-    'todos':'historial total','2024':'año 2024','2025':'año 2025','2026':'año 2026',
-    '2y':'2025–2026','3y':'2024–2026'
-  }[YEAR_FILT]||'historial total';
-
-  document.getElementById('kpi-strip').innerHTML = [
-    {lbl:'Mis ofertas',    val:total.toLocaleString('es-CO'),  sub:periodoLbl,                   cc:'var(--nv)'},
-    {lbl:'Ganadas',        val:ganadas,                         sub:'ofertas adjudicadas',         cc:'var(--go)'},
-    {lbl:'Tasa de cierre', val:tasa+'%',                        sub:'GIM '+({'todos':'histórico','2024':'2024','2025':'2025','2026':'2026','2y':'2025–26','3y':'2024–26'}[YEAR_FILT]||'')+': '+(TASA_GIM_BY_YEAR[YEAR_FILT]||GLOBAL_BENCH.tasa_global)+'%',
-      cc:tasa>=tasaEquipoPeriodo?'var(--go)':'var(--ca)'},
-    {lbl:'Pipeline activo',val:fmt(pipeline),                   sub:vd.kpis.activas+' ofertas en curso', cc:'var(--gd)'},
-    {lbl:'Valor ganado',   val:fmt(valor_adj),                  sub:periodoLbl,                   cc:'var(--nv)'},
-  ].map(c=>`<div class="kc" style="--kcc:${c.cc}">
-    <div class="lbl">${c.lbl}</div>
-    <div class="val">${c.val}</div>
-    <div class="sub">${c.sub}</div>
-  </div>`).join('');
-
-  // Update vs-equipo badge — comparar contra el mismo período
-  const tasaEquipoPeriodo = TASA_GIM_BY_YEAR[YEAR_FILT] || GLOBAL_BENCH.tasa_global;
-  const diff = +(tasa - tasaEquipoPeriodo).toFixed(1);
-  const vsEl = document.getElementById('b-vs');
-  if(vsEl){
-    if(diff >= 0){
-      vsEl.textContent = '+'+diff+'% vs equipo · ¡Por encima del promedio!';
-      vsEl.style.color = 'var(--go)';
-    } else if(diff >= -5){
-      vsEl.textContent = diff+'% vs equipo · Cerca del promedio — a seguir.';
-      vsEl.style.color = 'var(--ca)';
-    } else {
-      vsEl.textContent = diff+'% vs equipo · Hay oportunidad de mejora.';
-      vsEl.style.color = 'var(--ca)';
-    }
-  }
-}
-
-
-// ── Academia Comercial GIM ────────────────────────────────────────────────────
 const ACADEMIA = [
   {
     id: 'b2b-ciclo',
@@ -1940,6 +1865,89 @@ function closeAcad(){
   document.body.style.overflow='';
 }
 
+function renderCurrentTab(){
+  renderKPIs();   // always update KPIs when filter or tab changes
+  if(currentTab==='cli')  renderCli();
+  if(currentTab==='pipe') renderPipe();
+  if(currentTab==='rng')  renderRng();
+  if(currentTab==='tend') renderTend();
+  if(currentTab==='eval') populateEvalClients();
+  if(currentTab==='acad') renderAcad();
+}
+
+function renderKPIs(){
+  const vd = VENDOR_DATA[currentUser]; if(!vd) return;
+  const years = getYearFilter();
+  const vyc   = VENDOR_YEAR_CLIENTS[currentUser] || {};
+  const allowed = CLIENT_VISIBILITY[currentUser];
+
+  let total=0, ganadas=0, perdidas=0, activas=0, pipeline=0, valor_adj=0;
+
+  if(!years){
+    // Full history from kpis
+    const k = vd.kpis;
+    total     = k.total;
+    ganadas   = k.ganadas;
+    perdidas  = k.perdidas;
+    activas   = k.activas;
+    pipeline  = k.pipeline;
+    valor_adj = k.valor_adj;
+  } else {
+    // Aggregate from per-year data
+    years.forEach(yr => {
+      (vyc[yr]||[]).forEach(c => {
+        if(allowed && allowed.length>0 && !allowed.includes(c['Associated Company'])) return;
+        total     += c.total||0;
+        ganadas   += c.ganadas||0;
+        perdidas  += c.perdidas||0;
+        activas   += c.activas||0;
+        valor_adj += c.valor_ganado||0;
+      });
+    });
+    // Pipeline: only from active offers (always current, not filtered by year)
+    pipeline = vd.kpis.pipeline;
+  }
+
+  const tasa = ganadas+perdidas>0 ? Math.round(ganadas/(ganadas+perdidas)*1000)/10 : 0;
+  const periodoLbl = {
+    'todos':'historial total','2024':'año 2024','2025':'año 2025','2026':'año 2026',
+    '2y':'2025–2026','3y':'2024–2026'
+  }[YEAR_FILT]||'historial total';
+
+  const tasaEquipoPeriodo = TASA_GIM_BY_YEAR[YEAR_FILT] || GLOBAL_BENCH.tasa_global;
+
+  document.getElementById('kpi-strip').innerHTML = [
+    {lbl:'Mis ofertas',    val:total.toLocaleString('es-CO'),  sub:periodoLbl,                   cc:'var(--nv)'},
+    {lbl:'Ganadas',        val:ganadas,                         sub:'ofertas adjudicadas',         cc:'var(--go)'},
+    {lbl:'Tasa de cierre', val:tasa+'%',                        sub:'GIM '+({'todos':'histórico','2024':'2024','2025':'2025','2026':'2026','2y':'2025–26','3y':'2024–26'}[YEAR_FILT]||'')+': '+tasaEquipoPeriodo+'%',
+      cc:tasa>=tasaEquipoPeriodo?'var(--go)':'var(--ca)'},
+    {lbl:'Pipeline activo',val:fmt(pipeline),                   sub:vd.kpis.activas+' ofertas en curso', cc:'var(--gd)'},
+    {lbl:'Valor ganado',   val:fmt(valor_adj),                  sub:periodoLbl,                   cc:'var(--nv)'},
+  ].map(c=>`<div class="kc" style="--kcc:${c.cc}">
+    <div class="lbl">${c.lbl}</div>
+    <div class="val">${c.val}</div>
+    <div class="sub">${c.sub}</div>
+  </div>`).join('');
+
+  // Update vs-equipo badge — comparar contra el mismo período
+  const diff = +(tasa - tasaEquipoPeriodo).toFixed(1);
+  const vsEl = document.getElementById('b-vs');
+  if(vsEl){
+    if(diff >= 0){
+      vsEl.textContent = '+'+diff+'% vs equipo · ¡Por encima del promedio!';
+      vsEl.style.color = 'var(--go)';
+    } else if(diff >= -5){
+      vsEl.textContent = diff+'% vs equipo · Cerca del promedio — a seguir.';
+      vsEl.style.color = 'var(--ca)';
+    } else {
+      vsEl.textContent = diff+'% vs equipo · Hay oportunidad de mejora.';
+      vsEl.style.color = 'var(--ca)';
+    }
+  }
+}
+
+
+// ── Academia Comercial GIM ────────────────────────────────────────────────────
 // Close modal on background click
 document.addEventListener('click', e=>{
   const modal = document.getElementById('acad-modal');
