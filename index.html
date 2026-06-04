@@ -626,7 +626,7 @@ body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans',sans-serif
     <!-- Panel Academia -->
     <div id="panel-acad" style="display:none">
       <div class="stitle">🎓 Academia Comercial GIM</div>
-      <div class="ssub">Formación en ventas B2B · Estrategias para cerrar más y mejor</div>
+      <div class="ssub">Formación en entrada de pedidos B2B · Estrategias para cerrar más y mejor</div>
 
       <div class="acad-grid" id="acad-grid"></div>
     </div>
@@ -1511,7 +1511,7 @@ function buildAcercamiento(c){
     acciones = [
       { tipo:'inmediata',   txt: activas > 0
           ? `Revisar las ${activas} oferta${activas>1?'s':''} activa${activas>1?'s':''} — confirmar si siguen vigentes, quién decide y fecha de resolución.`
-          : `Solicitar una reunión técnica (no de ventas) para entender los proyectos del cliente en los próximos 6 meses.` },
+          : `Solicitar una reunión técnica (no de entrada de pedidos) para entender los proyectos del cliente en los próximos 6 meses.` },
       { tipo:'estrategica', txt: perdidas > ganadas
           ? `Planear la próxima oferta diferente: involucrar al equipo técnico de GIM desde el inicio para generar una propuesta más sólida.`
           : `Identificar al decisor técnico del cliente y generar contacto directo — las adjudicaciones estratégicas pasan por ingeniería, no solo por compras.` },
@@ -1555,12 +1555,12 @@ const ACADEMIA = [
     id: 'b2b-ciclo',
     icon: '🔄',
     title: 'El Ciclo de Venta B2B Industrial',
-    sub: 'Fundamentos · Ventas B2B',
+    sub: 'Fundamentos · Entrada De Pedidos B2B',
     tags: ['b2b'],
     preview: 'En B2B industrial no se vende en una llamada. Conoce las 6 etapas del ciclo y qué hacer en cada una para no perder oportunidades.',
     sections: [
       { title: '¿Por qué el B2B industrial es diferente?', content: `
-        <p>En ventas B2B industrial como las de GIM, el proceso de compra involucra múltiples personas, presupuestos aprobados con meses de anticipación y especificaciones técnicas que muchas veces ya vienen escritas para un proveedor específico.</p>
+        <p>En entrada de pedidos B2B industrial como las de GIM, el proceso de compra involucra múltiples personas, presupuestos aprobados con meses de anticipación y especificaciones técnicas que muchas veces ya vienen escritas para un proveedor específico.</p>
         <p>El comercial que entiende este ciclo llega antes, habla con las personas correctas y no desperdicia tiempo cotizando proyectos que ya están perdidos.</p>
       `},
       { title: 'Las 6 etapas del ciclo de compra del cliente', content: `
@@ -1705,14 +1705,14 @@ const ACADEMIA = [
     id: 'negociacion',
     icon: '🎯',
     title: 'Negociación B2B — Cerrar sin Regalar Margen',
-    sub: 'Negociación · Cierre de ventas',
+    sub: 'Negociación · Cierre de entrada de pedidos',
     tags: ['negociacion','precio'],
     preview: 'El momento de la negociación es donde más margen se pierde innecesariamente. Aprende a defender el precio de GIM con argumentos, no con descuentos.',
     sections: [
       { title: 'El error más común en negociación B2B', content: `
         <p>El error más común es hacer concesiones de precio antes de que el cliente realmente las pida, o ceder rápido ante la primera objeción. Esto destruye margen y credibilidad — el cliente aprende que siempre hay descuento disponible.</p>
       `},
-      { title: 'Las 5 reglas de negociación en ventas B2B industrial', content: `
+      { title: 'Las 5 reglas de negociación en entrada de pedidos B2B industrial', content: `
         <ul>
           <li><strong>1. Nunca el primero en ceder:</strong> Si el cliente pide descuento, primero pregunta qué necesita exactamente: ¿precio, plazo de pago, garantía extendida? A veces lo que piden no es dinero.</li>
           <li><strong>2. Cada concesión tiene contrapartida:</strong> "Puedo mejorar el precio si el pedido incluye X unidades" o "si el pago es de contado". Nunca dar sin recibir algo a cambio.</li>
@@ -1745,7 +1745,7 @@ const ACADEMIA = [
     preview: 'En B2B industrial el comercial que más visita, más gana. No porque insiste — sino porque llega primero, entiende mejor y genera confianza antes de que empiece la competencia.',
     sections: [
       { title: 'Por qué visitar más y cotizar menos', content: `
-        <p>El error más común en ventas B2B industrial es pasar el 80% del tiempo elaborando ofertas y el 20% frente al cliente. Debería ser al revés.</p>
+        <p>El error más común en entrada de pedidos B2B industrial es pasar el 80% del tiempo elaborando ofertas y el 20% frente al cliente. Debería ser al revés.</p>
         <p>Cada oferta que elaboras sin haber visitado al cliente primero tiene una probabilidad de éxito cercana al 15%. Cada oferta que elaboras después de una visita técnica tiene una probabilidad superior al 50%.</p>
         <div class="acad-quote">"Una oferta sin visita previa es una lotería. Una oferta después de una visita es una decisión informada."</div>
       `},
